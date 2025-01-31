@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center">Welcome to Social App</h1>
+
+        <!-- Create User Section -->
+        <div class="mt-5">
+            <h2>Create a New User</h2>
+            <form id="createUserForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username:</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Create User</button>
+            </form>
+        </div>
+
+        <!-- Create Post Section -->
+        <div class="mt-5">
+            <h2>Create a New Post</h2>
+            <form id="createPostForm" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="postTitle" class="form-label">Title:</label>
+                    <input type="text" class="form-control" id="postTitle" name="title" required>
+                </div>
+                <div class="mb-3">
+                    <label for="postContent" class="form-label">Content:</label>
+                    <textarea class="form-control" id="postContent" name="content" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="postUserId" class="form-label">User ID:</label>
+                    <input type="text" class="form-control" id="postUserId" name="user_id" required>
+                </div>
+                <div class="mb-3">
+                    <label for="postImage" class="form-label">Image:</label>
+                    <input type="file" class="form-control" id="postImage" name="image" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-primary">Create Post</button>
+            </form>
+        </div>
+
+        <!-- Retrieve Users and Posts Buttons -->
+        <div class="mt-5">
+            <button class="btn btn-info me-3" onclick="fetchUsers()">Retrieve All Users</button>
+            <button class="btn btn-info" onclick="fetchPosts()">Retrieve All Posts</button>
+        </div>
+
+        <!-- Users Section -->
+        <h2 class="mt-5">Users</h2>
+        <div id="users" class="row">
+            <!-- Users will be displayed here dynamically -->
+        </div>
+
+        <!-- Posts Section -->
+        <h2 class="mt-5">Posts</h2>
+        <div id="posts" class="row">
+            <!-- Posts will be displayed here dynamically -->
+        </div>
+    </div>
+
+    <!-- JavaScript to Handle Form Submissions and Fetch Data -->
+    <script>
+        // Function to handle user creation
+        document.getElementById('createUserForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const response = await fetch('/create_user', {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                alert('User created successfully');
+                event.target.reset();
+                fetchUsers();
+            } else {
+                alert('Failed to create user');
+            }
+        };
+
+        // Function to handle post creation
+        document.getElementById('createPostForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const response = await fetch('/create_post', {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                alert('Post created successfully');
+                event.target.reset();
+                fetchPosts();
+            } else {
+                alert('Failed to create post');
+            }
+        };
+
+        // Function to fetch and display users
+        async function fetchUsers() {
+            try {
+                const response = await fetch('/get_users');
+                const users = await response.json();
+                const usersContainer = document.getElementById('users');
+                usersContainer.innerHTML = '';
+
+                users.forEach(user => {
+                    const userCard = document.createElement('div');
+                    userCard.classList.add('col-md-4', 'mb-3');
+                    userCard.innerHTML = `
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">${user.username}</h5>
+                                <p class="card-text">Email: ${user.email}</p>
+                            </div>
+                        </div>
+                    `;
+                    usersContainer.appendChild(userCard);
+                });
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        }
+
+        // Function to fetch and display posts
+        async function fetchPosts() {
+            try {
+                const response = await fetch('/get_posts');
+                const posts = await response.json();
+                const postsContainer = document.getElementById('posts');
+                postsContainer.innerHTML = '';
+
+                posts.forEach(post => {
+                    const postCard = document.createElement('div');
+                    postCard.classList.add('col-md-4', 'mb-3');
+                    postCard.innerHTML = `
+                        <div class="card">
+                            ${post.image ? `<img src="${post.image}" class="card-img-top" alt="${post.title}">` : ''}
+                            <div class="card-body">
+                                <h5 class="card-title">${post.title}</h5>
+                                <p class="card-text">${post.content}</p>
+                                <p class="card-text"><small class="text-muted">Posted by User ID: ${post.user_id}</small></p>
+                            </div>
+                        </div>
+                    `;
+                    postsContainer.appendChild(postCard);
+                });
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+            }
+        }
+    </script>
+</body>
+</html>
